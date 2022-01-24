@@ -27,7 +27,6 @@ func main() {
 	var words []string
 	for scanner.Scan() {
 		words = append(words, scanner.Text())
-		//fmt.Printf("line: %s\n", scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -39,8 +38,6 @@ func main() {
 
 	shuffle(words)
 	wordsCopy := shuffle(words)
-
-	//load(wordsCopy, words, foundChannel)
 
 	wg := &sync.WaitGroup{}
 
@@ -68,13 +65,6 @@ func sentinal(group *sync.WaitGroup, ch chan status) {
 	group.Wait()
 	close(ch)
 }
-
-//func load(toFind, cache []string, sentinal chan bool) {
-//for _, w := range toFind {
-//go find(cache, w, sentinal)
-//}
-//defer close(sentinal)
-//}
 
 func find(words []string, target string, sentinal chan status, wg *sync.WaitGroup) {
 	defer wg.Done()
