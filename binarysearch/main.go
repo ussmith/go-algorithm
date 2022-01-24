@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+type status struct {
+	word  string
+	index int
+}
+
 func main() {
 	f, err := os.Open("/usr/share/dict/american-english")
 	if err != nil {
@@ -30,7 +35,7 @@ func main() {
 	}
 	fmt.Printf("Num Words: %d\n", len(words))
 
-	foundChannel := make(chan bool)
+	foundChannel := make(chan status)
 
 	shuffle(words)
 	wordsCopy := shuffle(words)
@@ -53,13 +58,13 @@ func main() {
 	count := 0
 	for found := range foundChannel {
 		count++
-		fmt.Printf("%v\n", found)
+		fmt.Printf("%s - index: %d\n", found.word, found.index)
 	}
 
 	fmt.Printf("Count: %d\n", count)
 }
 
-func sentinal(group *sync.WaitGroup, ch chan bool) {
+func sentinal(group *sync.WaitGroup, ch chan status) {
 	group.Wait()
 	close(ch)
 }
@@ -71,7 +76,7 @@ func sentinal(group *sync.WaitGroup, ch chan bool) {
 //defer close(sentinal)
 //}
 
-func find(words []string, target string, sentinal chan bool, wg *sync.WaitGroup) {
+func find(words []string, target string, sentinal chan status, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	bottom := 0
@@ -85,14 +90,20 @@ func find(words []string, target string, sentinal chan bool, wg *sync.WaitGroup)
 
 		if top == bottom {
 			//fmt.Printf("%d iterations\n", attempts)
-			sentinal <- false
+			sentinal <- status{
+				word:  target,
+				index: -1,
+			}
 			return
 		}
 
 		w := words[middle]
 		if w == target {
 			//fmt.Printf("%d iterations\n", attempts)
-			sentinal <- true
+			sentinal <- status{
+				word:  target,
+				index: middle,
+			}
 			return
 		} else if w < target {
 			bottom = middle
